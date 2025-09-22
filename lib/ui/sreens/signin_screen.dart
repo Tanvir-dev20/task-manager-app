@@ -1,9 +1,15 @@
+import 'package:email_validator/email_validator.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:task_manager_app/data/services/api_caller.dart';
+import 'package:task_manager_app/data/utils/urls.dart';
 import 'package:task_manager_app/ui/sreens/forgot_password_verify_email_screen.dart';
 import 'package:task_manager_app/ui/sreens/main_navbar_holder_screen.dart';
 import 'package:task_manager_app/ui/sreens/sign_up_screen.dart';
 import 'package:task_manager_app/ui/widgets/screen_background.dart';
+import 'package:task_manager_app/ui/widgets/snack_bar_message.dart';
+
+import '../widgets/centered_Progress_indicator.dart';
 
 class SigninScreen extends StatefulWidget {
   const SigninScreen({super.key});
@@ -17,6 +23,7 @@ class _SigninScreenState extends State<SigninScreen> {
   final TextEditingController _emailTEController = TextEditingController();
   final TextEditingController _passwordTEController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  bool signInInProgress = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,6 +32,7 @@ class _SigninScreenState extends State<SigninScreen> {
           padding: const EdgeInsets.all(15),
           child: Form(
             key: _formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -37,18 +45,34 @@ class _SigninScreenState extends State<SigninScreen> {
                 TextFormField(
                   controller: _emailTEController,
                   decoration: InputDecoration(hintText: 'Email'),
+                  validator: (value) {
+                    String inputText = value ?? '';
+                    if (EmailValidator.validate(inputText) == false) {
+                      return 'Enter a valid email';
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _passwordTEController,
                   obscureText: true,
                   decoration: InputDecoration(hintText: 'Password'),
+                  validator: (value) {
+                    if ((value?.length ?? 0) < 6) {
+                      return 'Password should more than 6 letter';
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 16),
-                FilledButton(
-                  onPressed: _onTapMainNavbarButton,
-
-                  child: Icon(Icons.arrow_circle_right_outlined),
+                Visibility(
+                  visible: signInInProgress == false,
+                  replacement: CenteredProgressIndicator(),
+                  child: FilledButton(
+                    onPressed: _onTapMainNavbarButton,
+                    child: Icon(Icons.arrow_circle_right_outlined),
+                  ),
                 ),
                 const SizedBox(height: 35),
                 Center(
@@ -100,11 +124,33 @@ class _SigninScreenState extends State<SigninScreen> {
   }
 
   void _onTapMainNavbarButton() {
-    Navigator.pushNamedAndRemoveUntil(
-      context,
-      MainNavbarHolderScreen.name,
-      (predecate) => false,
+    if (_formKey.currentState!.validate()) {}
+    _signIn();
+  }
+
+  Future<void> _signIn() async {
+    signInInProgress = true;
+    setState(() {});
+    Map<String, dynamic> requestBody = {
+      "email": _emailTEController.text.trim(),
+      "password": _passwordTEController.text,
+    };
+    final ApiResponse response = await ApiCaller.postRequest(
+      url: Urls.logInUrl,
+      body: requestBody,
     );
+    if (response.isSuccess || response.responseData['status'] == 'success') {
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        MainNavbarHolderScreen.name,
+        (predecate) => false,
+      );
+    } else {
+      signInInProgress = false;
+      setState(() {});
+      final message = response.responseData['data'];
+      showSnackBarMessage(context, message ?? response.errorMessage!);
+    }
   }
 
   @override

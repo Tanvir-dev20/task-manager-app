@@ -1,7 +1,11 @@
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:task_manager_app/data/services/api_caller.dart';
+import 'package:task_manager_app/data/utils/urls.dart';
+import 'package:task_manager_app/ui/widgets/centered_Progress_indicator.dart';
 import 'package:task_manager_app/ui/widgets/screen_background.dart';
+import 'package:task_manager_app/ui/widgets/snack_bar_message.dart';
 
 class SignUpScreen extends StatefulWidget {
   SignUpScreen({super.key});
@@ -18,6 +22,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _mobileTEController = TextEditingController();
   final TextEditingController _passwordTEController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  bool signUpInProgress = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,6 +82,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   TextFormField(
                     controller: _mobileTEController,
                     textInputAction: TextInputAction.next,
+                    keyboardType: TextInputType.phone,
                     decoration: InputDecoration(hintText: 'Mobile'),
                     validator: (String? value) {
                       if ((value?.trim().length ?? 0) < 11 ||
@@ -99,10 +105,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  FilledButton(
-                    onPressed: _onTapSignInButton,
+                  Visibility(
+                    visible: signUpInProgress == false,
+                    replacement: CenteredProgressIndicator(),
+                    child: FilledButton(
+                      onPressed: _onTapSubmitButton,
 
-                    child: Icon(Icons.arrow_circle_right_outlined),
+                      child: Icon(Icons.arrow_circle_right_outlined),
+                    ),
                   ),
                   const SizedBox(height: 35),
                   Center(
@@ -137,11 +147,45 @@ class _SignUpScreenState extends State<SignUpScreen> {
   void _onTapSubmitButton() {
     if (_formKey.currentState!.validate()) {
       //register user..
+      signUp();
     }
   }
 
   void _onTapSignInButton() {
     Navigator.pop(context);
+  }
+
+  Future<void> signUp() async {
+    signUpInProgress = true;
+    setState(() {});
+    Map<String, dynamic> requestBody = {
+      "email": _emailTEController.text.trim(),
+      "firstName": _firstNameTEController.text.trim(),
+      "lastName": _lastNameTEController.text.trim(),
+      "mobile": _mobileTEController.text.trim(),
+      "password": _passwordTEController.text,
+    };
+    final ApiResponse response = await ApiCaller.postRequest(
+      url: Urls.registrationUrl,
+      body: requestBody,
+    );
+    signUpInProgress = false;
+    setState(() {});
+    if (response.isSuccess) {
+      _clearTextField;
+      showSnackBarMessage(context, 'Registration successfull,please signin!');
+    } else {
+      showSnackBarMessage(context, response.errorMessage!);
+    }
+  }
+
+  //clear text field if registar successfull
+  void _clearTextField() {
+    _emailTEController.clear();
+    _firstNameTEController.clear();
+    _lastNameTEController.clear();
+    _mobileTEController.clear();
+    _passwordTEController.clear();
   }
 
   @override
