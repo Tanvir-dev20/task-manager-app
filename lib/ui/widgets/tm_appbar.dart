@@ -1,18 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:task_manager_app/ui/controllers/auth_controller.dart';
 import 'package:task_manager_app/ui/sreens/signin_screen.dart';
 import 'package:task_manager_app/ui/sreens/update_profile_screen.dart';
 
-class TMAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const TMAppBar({super.key, this.fromUpdateProfile});
+class TMAppBar extends StatefulWidget implements PreferredSizeWidget {
+  TMAppBar({super.key, this.fromUpdateProfile});
   final bool? fromUpdateProfile;
 
+  @override
+  State<TMAppBar> createState() => _TMAppBarState();
+  Size get preferredSize => Size.fromHeight(kToolbarHeight);
+}
+
+class _TMAppBarState extends State<TMAppBar> {
   @override
   Widget build(BuildContext context) {
     return AppBar(
       backgroundColor: Colors.green,
       title: GestureDetector(
         onTap: () {
-          if (fromUpdateProfile ?? false) {
+          if (widget.fromUpdateProfile ?? false) {
             return;
           }
           _onTapUpdateProfileButton(context);
@@ -25,13 +32,13 @@ class TMAppBar extends StatelessWidget implements PreferredSizeWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Full Name',
+                  AuthController.userModel!.fullName ?? '',
                   style: Theme.of(
                     context,
                   ).textTheme.titleSmall?.copyWith(color: Colors.white),
                 ),
                 Text(
-                  'example@gmail.com',
+                  AuthController.userModel!.email ?? '',
                   style: Theme.of(
                     context,
                   ).textTheme.bodySmall?.copyWith(color: Colors.white),
@@ -53,13 +60,12 @@ class TMAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight);
-
   void _onTapUpdateProfileButton(context) {
     Navigator.pushNamed(context, UpdateProfileScreen.name);
   }
 
-  void _onTapLogOutButton(context) {
+  void _onTapLogOutButton(context) async {
+    await AuthController.clearUserData();
     Navigator.pushNamedAndRemoveUntil(
       context,
       SigninScreen.name,

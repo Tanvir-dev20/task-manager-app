@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:task_manager_app/data/services/api_caller.dart';
 import 'package:task_manager_app/data/utils/urls.dart';
 import 'package:task_manager_app/ui/widgets/centered_Progress_indicator.dart';
+import 'package:task_manager_app/ui/widgets/password_visibility.dart';
 import 'package:task_manager_app/ui/widgets/screen_background.dart';
 import 'package:task_manager_app/ui/widgets/snack_bar_message.dart';
 
@@ -23,6 +24,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _passwordTEController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool signUpInProgress = false;
+  bool isObscure = true;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -95,8 +97,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _passwordTEController,
-                    obscureText: true,
-                    decoration: InputDecoration(hintText: 'Password'),
+                    obscureText: isObscure,
+                    decoration: InputDecoration(
+                      suffixIcon: PasswordSuffixIcon(
+                        isObscure: isObscure,
+                        onToggole: onTapPassordVisibleIcon,
+                      ),
+                      hintText: 'Password',
+                    ),
                     validator: (String? value) {
                       if ((value?.length ?? 0) < 6) {
                         return 'Enter a password more than 6 letter';
@@ -153,6 +161,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   void _onTapSignInButton() {
     Navigator.pop(context);
+  }
+
+  void onTapPassordVisibleIcon() {
+    isObscure = !isObscure;
+    setState(() {});
   }
 
   Future<void> signUp() async {
