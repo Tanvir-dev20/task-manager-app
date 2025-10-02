@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:task_manager_app/data/model/task_model.dart';
 import 'package:task_manager_app/data/model/task_status_count_model.dart';
 import 'package:task_manager_app/data/services/api_caller.dart';
 import 'package:task_manager_app/data/utils/urls.dart';
@@ -18,11 +19,14 @@ class NewTaskScreen extends StatefulWidget {
 
 class _NewTaskScreenState extends State<NewTaskScreen> {
   bool _getAllTaskStatusCountInProgress = false;
+  bool _getAllNewTaskInProgress = false;
   List<TaskStatusCountModel> _taskStatusCountList = [];
+  List<TaskModel> _newTaskList = [];
 
   @override
   void initState() {
     super.initState();
+    _getAllNewTask();
     _getAllTaskStatusCount();
   }
 
@@ -44,6 +48,25 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
       showSnackBarMessage(context, response.responseData);
     }
     _getAllTaskStatusCountInProgress = false;
+    setState(() {});
+  }
+
+  Future<void> _getAllNewTask() async {
+    _getAllNewTaskInProgress = true;
+    setState(() {});
+    final ApiResponse response = await ApiCaller.getRequest(
+      url: Urls.newTaskListUrl,
+    );
+    if (response.isSuccess) {
+      List<TaskModel> list = [];
+      for (Map<String, dynamic> jsonData in response.responseData['data']) {
+        list.add(TaskModel.fromJson(jsonData));
+      }
+      _newTaskList = list;
+    } else {
+      showSnackBarMessage(context, response.responseData);
+    }
+    _getAllNewTaskInProgress = false;
     setState(() {});
   }
 
@@ -76,14 +99,25 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
               ),
             ),
             Expanded(
-              child: ListView.separated(
-                itemCount: 10,
-                itemBuilder: (context, index) {
-                  return TaskCard(status: 'New', bgColor: Colors.blue);
-                },
-                separatorBuilder: (context, index) {
-                  return SizedBox(height: 8);
-                },
+              child: Visibility(
+                visible: _getAllNewTaskInProgress == false,
+                replacement: CenteredProgressIndicator(),
+                child: ListView.separated(
+                  itemCount: _newTaskList.length,
+                  itemBuilder: (context, index) {
+                    return TaskCard(
+                      bgColor: Colors.blue,
+                      taskModel: _newTaskList[index],
+                      refreshParent: () {
+                        _getAllNewTask();
+                        _getAllTaskStatusCount();
+                      },
+                    );
+                  },
+                  separatorBuilder: (context, index) {
+                    return SizedBox(height: 8);
+                  },
+                ),
               ),
             ),
           ],
@@ -91,7 +125,7 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
       ),
 
       floatingActionButton: FloatingActionButton(
-        onPressed: _onTapAddNewTaskButton,
+        onPressed: () => _onTapAddNewTaskButton(),
         child: Icon(Icons.add),
       ),
     );

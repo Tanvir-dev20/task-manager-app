@@ -1,7 +1,10 @@
 import 'dart:convert';
+import 'package:flutter/widgets.dart';
 import 'package:http/http.dart';
 import 'package:logger/logger.dart';
+import 'package:task_manager_app/app.dart';
 import 'package:task_manager_app/ui/controllers/auth_controller.dart';
+import 'package:task_manager_app/ui/sreens/signin_screen.dart';
 
 class ApiCaller {
   static final Logger _logger = Logger();
@@ -22,6 +25,14 @@ class ApiCaller {
           isSuccess: true,
           responseCode: statusCode,
           responseData: decodedData,
+        );
+      } else if (statusCode == 401) {
+        await _moveToSignIn();
+        return ApiResponse(
+          isSuccess: false,
+          responseCode: statusCode,
+          responseData: 'Un-authorized',
+          errorMessage: null,
         );
       } else {
         //Failed
@@ -67,6 +78,14 @@ class ApiCaller {
           responseCode: statusCode,
           responseData: decodedData,
         );
+      } else if (statusCode == 401) {
+        await _moveToSignIn();
+        return ApiResponse(
+          isSuccess: false,
+          responseCode: statusCode,
+          responseData: 'Un-authorized',
+          errorMessage: null,
+        );
       } else {
         //Failed
         return ApiResponse(
@@ -95,6 +114,15 @@ class ApiCaller {
       'Url=>$url\n'
       'Status Code=>${response.statusCode}\n'
       'Body=>${response.body}',
+    );
+  }
+
+  static Future<void> _moveToSignIn() async {
+    await AuthController.clearUserData();
+    Navigator.pushNamedAndRemoveUntil(
+      TaskManagerApp.navigator.currentContext!,
+      SigninScreen.name,
+      (predicate) => false,
     );
   }
 }

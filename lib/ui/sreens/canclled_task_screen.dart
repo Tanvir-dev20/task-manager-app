@@ -18,7 +18,7 @@ class _CanclledTaskScreenState extends State<CanclledTaskScreen> {
         child: ListView.separated(
           itemCount: 10,
           itemBuilder: (context, index) {
-            return TaskCard(status: 'Canclled', bgColor: Colors.red);
+            // return TaskCard(status: 'Canclled', bgColor: Colors.red);
           },
           separatorBuilder: (context, index) {
             return SizedBox(height: 8);
