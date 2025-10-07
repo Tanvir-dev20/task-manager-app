@@ -43,7 +43,7 @@ class _MainNavbarHolderScreenState extends State<MainNavbarHolderScreen> {
             icon: Icon(Icons.refresh_outlined),
             label: 'Progress',
           ),
-          NavigationDestination(icon: Icon(Icons.close), label: 'Canclled'),
+          NavigationDestination(icon: Icon(Icons.close), label: 'Cancelled'),
           NavigationDestination(icon: Icon(Icons.done), label: 'Completed'),
         ],
       ),

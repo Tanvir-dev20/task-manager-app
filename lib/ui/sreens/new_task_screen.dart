@@ -55,7 +55,7 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
     _getAllNewTaskInProgress = true;
     setState(() {});
     final ApiResponse response = await ApiCaller.getRequest(
-      url: Urls.newTaskListUrl,
+      url: Urls.taskListUrl('New'),
     );
     if (response.isSuccess) {
       List<TaskModel> list = [];

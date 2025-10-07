@@ -28,7 +28,7 @@ class _ProgressTaskScreenState extends State<ProgressTaskScreen> {
     _getAllProgressTaskInProgress = true;
     setState(() {});
     final ApiResponse response = await ApiCaller.getRequest(
-      url: Urls.progressTaskListUrl,
+      url: Urls.taskListUrl('Progress'),
     );
     if (response.isSuccess) {
       List<TaskModel> list = [];
