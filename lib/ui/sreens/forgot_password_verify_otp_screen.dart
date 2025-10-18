@@ -3,10 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:task_manager_app/ui/sreens/reset_password_screen.dart';
 import 'package:task_manager_app/ui/sreens/signin_screen.dart';
+import 'package:task_manager_app/ui/widgets/centered_Progress_indicator.dart';
 import 'package:task_manager_app/ui/widgets/screen_background.dart';
 
+import '../../data/services/api_caller.dart';
+import '../../data/utils/urls.dart';
+import '../widgets/snack_bar_message.dart';
+
 class ForgotPasswordVerifyOtpScreen extends StatefulWidget {
-  ForgotPasswordVerifyOtpScreen({super.key});
+  ForgotPasswordVerifyOtpScreen();
   static const String name = '/otp';
 
   @override
@@ -18,8 +23,11 @@ class _ForgotPasswordVerifyOtpScreen
     extends State<ForgotPasswordVerifyOtpScreen> {
   final TextEditingController _otpTEController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  bool _verifyOtpInProgress = false;
+  bool isSuccess = false;
   @override
   Widget build(BuildContext context) {
+    final emailArg = ModalRoute.of(context)!.settings.arguments as String;
     return Scaffold(
       body: ScreenBackground(
         child: Padding(
@@ -63,9 +71,15 @@ class _ForgotPasswordVerifyOtpScreen
                 ),
 
                 const SizedBox(height: 16),
-                FilledButton(
-                  onPressed: _onTapVerifyButton,
-                  child: Text('Verify'),
+                Visibility(
+                  visible: _verifyOtpInProgress == false,
+                  replacement: CenteredProgressIndicator(),
+                  child: FilledButton(
+                    onPressed: () {
+                      _recoverVerifyOtp(emailArg, _otpTEController.text);
+                    },
+                    child: Text('Verify'),
+                  ),
                 ),
                 const SizedBox(height: 35),
                 Center(
@@ -106,6 +120,26 @@ class _ForgotPasswordVerifyOtpScreen
 
   void _onTapVerifyButton() {
     Navigator.pushNamed(context, ResetPasswordScreen.name);
+  }
+
+  Future<void> _recoverVerifyOtp(String email, String otp) async {
+    _verifyOtpInProgress = true;
+    setState(() {});
+    final ApiResponse response = await ApiCaller.getRequest(
+      url: Urls.recoverVerifyOtpUrl(email, otp),
+    );
+    if (response.isSuccess && response.responseData['status'] == 'success') {
+      final message = response.responseData['data'];
+      showSnackBarMessage(context, message);
+      _verifyOtpInProgress = false;
+      _onTapVerifyButton();
+      setState(() {});
+    } else {
+      _verifyOtpInProgress = false;
+      setState(() {});
+      final message = response.responseData['data'];
+      showSnackBarMessage(context, message ?? response.errorMessage!);
+    }
   }
 
   @override

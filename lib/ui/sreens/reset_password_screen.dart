@@ -1,6 +1,10 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:task_manager_app/data/services/api_caller.dart';
+import 'package:task_manager_app/data/utils/urls.dart';
+import 'package:task_manager_app/ui/widgets/centered_Progress_indicator.dart';
 import 'package:task_manager_app/ui/widgets/screen_background.dart';
+import 'package:task_manager_app/ui/widgets/snack_bar_message.dart';
 
 import 'signin_screen.dart';
 
@@ -13,10 +17,11 @@ class ResetPasswordScreen extends StatefulWidget {
 }
 
 class _ResetPasswordScreen extends State<ResetPasswordScreen> {
+  final TextEditingController _emailTEController = TextEditingController();
   final TextEditingController _passwordTEController = TextEditingController();
-  final TextEditingController _confirmPasswordTEController =
-      TextEditingController();
+  final TextEditingController _otpTEController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  bool newPasswordInProgress = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,15 +47,23 @@ class _ResetPasswordScreen extends State<ResetPasswordScreen> {
                 ),
                 const SizedBox(height: 24),
                 TextFormField(
-                  controller: _passwordTEController,
+                  controller: _emailTEController,
                   decoration: InputDecoration(
-                    hintText: 'New Password',
+                    hintText: 'Email',
                     hintStyle: TextStyle(color: Colors.grey),
                   ),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
-                  controller: _confirmPasswordTEController,
+                  controller: _otpTEController,
+                  decoration: InputDecoration(
+                    hintText: 'Otp',
+                    hintStyle: TextStyle(color: Colors.grey),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _passwordTEController,
                   decoration: InputDecoration(
                     hintText: 'Confirm New Password',
                     hintStyle: TextStyle(color: Colors.grey),
@@ -58,10 +71,14 @@ class _ResetPasswordScreen extends State<ResetPasswordScreen> {
                 ),
 
                 const SizedBox(height: 16),
-                FilledButton(
-                  onPressed: _onTapConfirmButton,
+                Visibility(
+                  visible: newPasswordInProgress == false,
+                  replacement: CenteredProgressIndicator(),
+                  child: FilledButton(
+                    onPressed: setNewPassword,
 
-                  child: Text('Confirm'),
+                    child: Text('Confirm'),
+                  ),
                 ),
                 const SizedBox(height: 35),
                 Center(
@@ -100,10 +117,33 @@ class _ResetPasswordScreen extends State<ResetPasswordScreen> {
     );
   }
 
+  Future<void> setNewPassword() async {
+    newPasswordInProgress = true;
+    setState(() {});
+    Map<String, dynamic> requestBody = {
+      "email": _emailTEController.text.trim(),
+      "OTP": _otpTEController.text.trim(),
+      "password": _passwordTEController.text,
+    };
+    final ApiResponse response = await ApiCaller.postRequest(
+      url: Urls.resetPasswordUrl,
+      body: requestBody,
+    );
+    if (response.isSuccess) {
+      showSnackBarMessage(context, response.responseData['data']);
+      _onTapConfirmButton();
+    } else {
+      newPasswordInProgress = false;
+      setNewPassword();
+      showSnackBarMessage(context, response.errorMessage!);
+    }
+  }
+
   @override
   void dispose() {
+    _emailTEController.dispose();
     _passwordTEController.dispose();
-    _confirmPasswordTEController.dispose();
+    _otpTEController.dispose();
     super.dispose();
   }
 }

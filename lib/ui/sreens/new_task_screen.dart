@@ -4,6 +4,7 @@ import 'package:task_manager_app/data/model/task_status_count_model.dart';
 import 'package:task_manager_app/data/services/api_caller.dart';
 import 'package:task_manager_app/data/utils/urls.dart';
 import 'package:task_manager_app/ui/sreens/add_new_task_screen.dart';
+import 'package:task_manager_app/ui/sreens/update_profile_screen.dart';
 import 'package:task_manager_app/ui/widgets/centered_Progress_indicator.dart';
 import 'package:task_manager_app/ui/widgets/snack_bar_message.dart';
 

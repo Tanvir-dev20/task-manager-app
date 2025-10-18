@@ -28,6 +28,7 @@ class _SigninScreenState extends State<SigninScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool isObscure = true;
   bool _signInInProgress = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -161,6 +162,7 @@ class _SigninScreenState extends State<SigninScreen> {
     if (response.isSuccess && response.responseData['status'] == 'success') {
       UserModel model = UserModel.fromJson(response.responseData['data']);
       String accessToken = response.responseData['token'];
+      debugPrint('💡💡💡💡this is access token key=>>>${accessToken}');
 
       await AuthController.saveUserData(accessToken, model);
 
