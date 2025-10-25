@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:task_manager_app/data/services/api_caller.dart';
 import 'package:task_manager_app/data/utils/urls.dart';
 import 'package:task_manager_app/ui/widgets/centered_Progress_indicator.dart';
 import 'package:task_manager_app/ui/widgets/screen_background.dart';
 import 'package:task_manager_app/ui/widgets/snack_bar_message.dart';
 import 'package:task_manager_app/ui/widgets/tm_appbar.dart';
+
+import '../controllers/new_task_list_provider.dart';
 
 class AddNewTaskScreen extends StatefulWidget {
   const AddNewTaskScreen({super.key});
@@ -98,6 +101,7 @@ class _AddNewTaskScreenState extends State<AddNewTaskScreen> {
       body: requestBody,
     );
     if (response.isSuccess) {
+      context.read<NewTaskListProvider>().getAllNewTask();
       _clearTextField();
       showSnackBarMessage(context, 'New task added successfull');
     } else {
