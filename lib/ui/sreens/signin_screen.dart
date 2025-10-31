@@ -29,7 +29,7 @@ class _SigninScreenState extends State<SigninScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Provider(
+    return ChangeNotifierProvider(
       create: (_) => _signinProvider,
       child: Scaffold(
         body: ScreenBackground(
